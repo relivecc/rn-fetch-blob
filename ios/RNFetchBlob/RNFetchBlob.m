@@ -433,10 +433,9 @@ RCT_EXPORT_METHOD(lstat:(NSString *)path callback:(RCTResponseSenderBlock) callb
         for(NSString * p in files) {
             NSString * filePath = [NSString stringWithFormat:@"%@/%@", path, p];
             NSDictionary * fileStats = [RNFetchBlobFS stat:filePath error:&error];
-            if (fileStats == nil) {
-                continue;
+            if (fileStats != nil) {
+                [res addObject:fileStats];
             }
-            [res addObject:fileStats];
         }
     }
     else {
