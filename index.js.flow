@@ -48,7 +48,7 @@ declare class FsApi {
   scanFile(pairs: {mime: string, path: string}[]): Promise<void>;
   session(name: string): RNFetchBlobSession;
   slice(src: string, dest: string, start: number, end: number): Promise<string>;
-  stat(path: string): Promise<RNFetchBlobStat>;
+  stat(path: string, logMore: boolean): Promise<RNFetchBlobStat>;
   unlink(path: string): Promise<void>;
   writeFile(path: string, data: string | number[], encoding?: Encoding | "uri"): Promise<number>;
   writeStream(path: string, encoding: Encoding, append?: boolean): Promise<RNFetchBlobWriteStream>;

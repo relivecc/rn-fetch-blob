@@ -255,7 +255,7 @@ public class RNFetchBlob extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void stat(String path, Callback callback, Boolean logMore) {
+    public void stat(String path, Boolean logMore, Callback callback) {
         RNFetchBlobFS.stat(path, logMore != null ? logMore : false, callback);
     }
 

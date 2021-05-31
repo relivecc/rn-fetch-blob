@@ -845,6 +845,8 @@ class RNFetchBlobFS {
                 if (!target.exists()) {
                     if (logMore) {
                         throw new Error("Target does not exist");
+                    } else {
+                        throw new Error("Target does not exist");
                     }
 
                     return null;

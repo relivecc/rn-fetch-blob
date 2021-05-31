@@ -213,12 +213,12 @@ function appendFile(path: string, data: string | Array<number>, encoding?: strin
  * @param  {string} path Target path
  * @return {RNFetchBlobFile}
  */
-function stat(path: string, logMore?: boolean): Promise<RNFetchBlobFile> {
+function stat(path: string, logMore: boolean): Promise<RNFetchBlobFile> {
   return new Promise((resolve, reject) => {
     if (typeof path !== 'string') {
       return reject(addCode('EINVAL', new TypeError('Missing argument "path" ')))
     }
-    RNFetchBlob.stat(path, (err, stat) => {
+    RNFetchBlob.stat(path, logMore, (err, stat) => {
       if (err)
         reject(new Error(err))
       else {
@@ -228,7 +228,7 @@ function stat(path: string, logMore?: boolean): Promise<RNFetchBlobFile> {
         }
         resolve(stat)
       }
-    }, logMore)
+    })
   })
 }
 
@@ -365,7 +365,7 @@ function slice(src: string, dest: string, start: number, end: number): Promise {
   }
 
   if (start < 0 || end < 0 || !start || !end) {
-    p = p.then(() => stat(src))
+    p = p.then(() => stat(src, false))
       .then((stat) => {
         size = Math.floor(stat.size)
         start = normalize(start || 0, size)
