@@ -378,7 +378,7 @@ export interface FS {
      * Show statistic data of a path.
      * @param  path Target path
      */
-    stat(path: string): Promise<RNFetchBlobStat>;
+    stat(path: string, logMore?: boolean): Promise<RNFetchBlobStat>;
 
     lstat(path: string): Promise<RNFetchBlobStat[]>;
 

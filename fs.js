@@ -213,7 +213,7 @@ function appendFile(path: string, data: string | Array<number>, encoding?: strin
  * @param  {string} path Target path
  * @return {RNFetchBlobFile}
  */
-function stat(path: string): Promise<RNFetchBlobFile> {
+function stat(path: string, logMore?: boolean): Promise<RNFetchBlobFile> {
   return new Promise((resolve, reject) => {
     if (typeof path !== 'string') {
       return reject(addCode('EINVAL', new TypeError('Missing argument "path" ')))
@@ -228,7 +228,7 @@ function stat(path: string): Promise<RNFetchBlobFile> {
         }
         resolve(stat)
       }
-    })
+    }, logMore)
   })
 }
 

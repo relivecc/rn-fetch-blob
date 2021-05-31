@@ -268,7 +268,7 @@ class RNFetchBlobFS {
             if (externalDirectory != null) {
                 res.put("SDCardApplicationDir", externalDirectory.getParentFile().getAbsolutePath());
             } else {
-              res.put("SDCardApplicationDir", "");
+                res.put("SDCardApplicationDir", "");
             }
         }
         res.put("MainBundleDir", ctx.getApplicationInfo().dataDir);
@@ -797,15 +797,19 @@ class RNFetchBlobFS {
      * @param path  Path
      * @param callback  Callback
      */
-    static void stat(String path, Callback callback) {
+    static void stat(String path, boolean logMore, Callback callback) {
         try {
             path = normalizePath(path);
-            WritableMap result = statFile(path);
+            WritableMap result = statFile(path, logMore);
             if(result == null)
                 callback.invoke("failed to stat path `" + path + "` because it does not exist or it is not a folder", null);
             else
                 callback.invoke(null, result);
         } catch(Exception err) {
+            if (logMore) {
+                callback.invoke("failed to stat path `" + path + "` because it does not exist or it is not a folder with error `" + err.getLocalizedMessage() + "`", null);
+            }
+
             callback.invoke(err.getLocalizedMessage());
         }
     }
@@ -816,6 +820,14 @@ class RNFetchBlobFS {
      * @return Stat  Result of a file or path
      */
     static WritableMap statFile(String path) {
+        try {
+            return statFile(path, false);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    static WritableMap statFile(String path, boolean logMore) throws IOException {
         try {
             path = normalizePath(path);
             WritableMap stat = Arguments.createMap();
@@ -831,6 +843,10 @@ class RNFetchBlobFS {
             else {
                 File target = new File(path);
                 if (!target.exists()) {
+                    if (logMore) {
+                        throw new Error("Target does not exist");
+                    }
+
                     return null;
                 }
                 stat.putString("filename", target.getName());
@@ -843,6 +859,10 @@ class RNFetchBlobFS {
             }
             return stat;
         } catch(Exception err) {
+            if (logMore) {
+                throw err;
+            }
+
             return null;
         }
     }
@@ -992,9 +1012,13 @@ class RNFetchBlobFS {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             args.putString("internal_free", String.valueOf(stat.getFreeBytes()));
             args.putString("internal_total", String.valueOf(stat.getTotalBytes()));
-            StatFs statEx = new StatFs(Environment.getExternalStorageDirectory().getPath());
-            args.putString("external_free", String.valueOf(statEx.getFreeBytes()));
-            args.putString("external_total", String.valueOf(statEx.getTotalBytes()));
+            try {
+                StatFs statEx = new StatFs(Environment.getExternalStorageDirectory().getPath());
+                args.putString("external_free", String.valueOf(statEx.getFreeBytes()));
+                args.putString("external_total", String.valueOf(statEx.getTotalBytes()));
+            } catch(IllegalArgumentException err) {
+                // Do nothing
+            }
 
         }
         callback.invoke(null ,args);
