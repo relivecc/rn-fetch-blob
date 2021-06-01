@@ -803,11 +803,6 @@ class RNFetchBlobFS {
             try {
                 path = normalizePath(path);
                 WritableMap result = statFileVerboseNull(path);
-
-                if (!!verboseNull) {
-                    throw new Exception("Jasper did something wrong");
-                }
-
                 callback.invoke(null, result);
             } catch(Exception err) {
                 callback.invoke("failed to stat path `" + path + "` because error `" + err.getLocalizedMessage() + "`", null);
