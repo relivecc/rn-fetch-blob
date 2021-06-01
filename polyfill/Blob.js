@@ -137,7 +137,7 @@ export default class Blob extends EventTarget {
       if(defer)
         return
       else {
-        p = fs.stat(orgPath)
+        p = fs.stat(orgPath, false)
               .then((stat) =>  {
                 return Promise.resolve(stat.size)
               })

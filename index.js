@@ -152,7 +152,7 @@ function fetchFile(options = {}, method, url, headers = {}, body):Promise {
 
     // read data from file system
     default:
-      promise = fs.stat(url)
+      promise = fs.stat(url, false)
       .then((stat) => {
         total = stat.size
         return fs.readStream(url,

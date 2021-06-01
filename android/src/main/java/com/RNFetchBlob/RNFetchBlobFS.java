@@ -9,6 +9,7 @@ import android.os.Environment;
 import android.os.StatFs;
 import android.os.SystemClock;
 import android.util.Base64;
+import android.util.Log;
 
 import com.RNFetchBlob.Utils.PathResolver;
 import com.facebook.react.bridge.Arguments;
@@ -797,17 +798,70 @@ class RNFetchBlobFS {
      * @param path  Path
      * @param callback  Callback
      */
-    static void stat(String path, Callback callback) {
-        try {
-            path = normalizePath(path);
-            WritableMap result = statFile(path);
-            if(result == null)
-                callback.invoke("failed to stat path `" + path + "` because it does not exist or it is not a folder", null);
-            else
+    static void stat(String path, boolean verboseNull, Callback callback) {
+        if (verboseNull) {
+            try {
+                path = normalizePath(path);
+                WritableMap result = statFileVerboseNull(path);
+
+                if (!!verboseNull) {
+                    throw new Exception("Jasper did something wrong");
+                }
+
                 callback.invoke(null, result);
-        } catch(Exception err) {
-            callback.invoke(err.getLocalizedMessage());
+            } catch(Exception err) {
+                callback.invoke("failed to stat path `" + path + "` because error `" + err.getLocalizedMessage() + "`", null);
+            }
+        } else {
+            try {
+                path = normalizePath(path);
+                WritableMap result = statFile(path);
+                if(result == null)
+                    callback.invoke("failed to stat path `" + path + "` because it does not exist or it is not a folder", null);
+                else
+                    callback.invoke(null, result);
+            } catch(Exception err) {
+                callback.invoke(err.getLocalizedMessage());
+            }
         }
+    }
+
+    /**
+     * Basic stat method with more verbose null output
+     * @param path  Path
+     * @return Stat  Result of a file or path
+     */
+    static WritableMap statFileVerboseNull(String path) throws Exception {
+        path = normalizePath(path);
+        WritableMap stat = Arguments.createMap();
+        if(isAsset(path)) {
+            String name = path.replace(RNFetchBlobConst.FILE_PREFIX_BUNDLE_ASSET, "");
+            AssetFileDescriptor fd = RNFetchBlob.RCTContext.getAssets().openFd(name);
+            stat.putString("filename", name);
+            stat.putString("path", path);
+            stat.putString("type", "asset");
+            stat.putString("size", String.valueOf(fd.getLength()));
+            stat.putInt("lastModified", 0);
+        }
+        else {
+            File target = new File(path);
+            if (!target.exists()) {
+                boolean parentExists = target.getParent() != null;
+                if (parentExists) {
+                    throw new Exception("Target does not exist");
+                } else {
+                    throw new Exception("Target and parent do not exist");
+                }
+            }
+            stat.putString("filename", target.getName());
+            stat.putString("path", target.getPath());
+            stat.putString("type", target.isDirectory() ? "directory" : "file");
+            stat.putString("size", String.valueOf(target.length()));
+            String lastModified = String.valueOf(target.lastModified());
+            stat.putString("lastModified", lastModified);
+
+        }
+        return stat;
     }
 
     /**
@@ -992,9 +1046,13 @@ class RNFetchBlobFS {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             args.putString("internal_free", String.valueOf(stat.getFreeBytes()));
             args.putString("internal_total", String.valueOf(stat.getTotalBytes()));
-            StatFs statEx = new StatFs(Environment.getExternalStorageDirectory().getPath());
-            args.putString("external_free", String.valueOf(statEx.getFreeBytes()));
-            args.putString("external_total", String.valueOf(statEx.getTotalBytes()));
+            try {
+                StatFs statEx = new StatFs(Environment.getExternalStorageDirectory().getPath());
+                args.putString("external_free", String.valueOf(statEx.getFreeBytes()));
+                args.putString("external_total", String.valueOf(statEx.getTotalBytes()));
+            } catch(IllegalArgumentException err) {
+                // Do nothing
+            }
 
         }
         callback.invoke(null ,args);
