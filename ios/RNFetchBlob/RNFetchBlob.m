@@ -372,7 +372,7 @@ RCT_EXPORT_METHOD(ls:(NSString *)path resolver:(RCTPromiseResolveBlock)resolve r
 }
 
 #pragma mark - fs.stat
-RCT_EXPORT_METHOD(stat:(NSString *)target callback:(RCTResponseSenderBlock) callback)
+RCT_EXPORT_METHOD(stat:(NSString *)target verboseNull:(Boolean)verboseNull callback:(RCTResponseSenderBlock) callback)
 {
 
     [RNFetchBlobFS getPathFromUri:target completionHandler:^(NSString *path, ALAssetRepresentation *asset) {
